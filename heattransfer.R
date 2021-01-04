@@ -1,4 +1,4 @@
-# Heat Transfer Equation (FDM)
+# Heat Transfer Equation (FDM approximation)
 # www.overfitting.net
 
 library(png)
@@ -6,7 +6,7 @@ library(png)
 # 1D HEAT TRANSFER
 n=25  # number of cells
 N=500  # 60 iterations simulation
-L=0.1  # 0,1 m wall thickness
+L=0.1  # 0.1 m wall thickness
 dx=L/n  # 0.01 m
 dt=0.05  # 0.1 s
 
