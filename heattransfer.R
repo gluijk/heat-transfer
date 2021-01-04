@@ -5,7 +5,7 @@ library(png)
 
 # 1D HEAT TRANSFER
 n=25  # number of cells
-N=500  # 60 iterations simulation
+N=500  # number of iterations
 L=0.1  # 0.1 m wall thickness
 dx=L/n  # 0.01 m
 dt=0.05  # 0.1 s
@@ -21,7 +21,7 @@ T[n]=Tright
 indices=which(col(T)!=1 & col(T)!=n)
 x=seq(from=dx/2, to=L-dx/2, length.out=n)  # position array
 
-val=alpha*(dt/dx^2)
+val=alpha*dt/dx^2
 for (j in 0:N) {
     nombre=paste0("heat_transfer_",
         ifelse(j<10, "000", ifelse(j<100, "00", ifelse(j<1000, "0", ""))), j,
