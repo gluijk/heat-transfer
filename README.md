@@ -1,2 +1,2 @@
 # heat-transfer
-Solving the Heat Transfer differential equation with FDM (Finite-Difference Method)
+Solving the Heat Transfer differential equation using the FDTD (Finite-Difference Time-Domain)
