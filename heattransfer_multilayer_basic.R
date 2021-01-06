@@ -7,7 +7,6 @@ library(stringr)
 
 # Parameters
 N=100000L  # number of iterations
-n=100L  # number of cells (2 are the outer ends)
 n=101L  # number of cells (2 are the outer ends)
 
 L=0.2  # wall thickness (m)
@@ -31,7 +30,6 @@ indices=which(col(T)!=1 & col(T)!=n)
 
 SPLIT1=35  # first cell of layer B
 SPLIT2=69  # first cell of layer C
-
 alpha=matrix(alpha0, nrow=1, ncol=n)
 alpha[SPLIT1:(SPLIT2-1)]=alpha1
 alpha[SPLIT2:n]=alpha2
@@ -72,7 +70,7 @@ for (j in 0:N) {
          (val[indices]+val[indices+1])/2*(T[indices+1] - T[indices]) -
          (val[indices-1]+val[indices])/2*(T[indices] - T[indices-1])
     
-    # Carlos:
+    # Carlos Gil:
     # T_{t+1)i = T_ti + dt / dx^2 * (alpha[i+1] (T_t(i+1) - T_ti) - alpha[i-1] (T_ti - T_t(i-1)))
     #   T[indices] = T[indices] +
     #       val[indices+1]*(T[indices+1] - T[indices]) -
