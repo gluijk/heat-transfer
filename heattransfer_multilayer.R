@@ -49,7 +49,7 @@ print(paste0("r=", r, " -> ", ifelse(r<=0.5, "STABLE", "UNSTABLE"),
 val=alpha*dt/dx^2  # precalculated vector
 for (j in 0:N) {
     if (j %% 1000==0) {
-        nombre=paste0("heattransfer2_",
+        nombre=paste0("heattransfer_",
                       str_pad(j, nchar(N), pad='0'), ".png")
         png(nombre)
         plot(x, T, type='l', col='red', lwd=2,
