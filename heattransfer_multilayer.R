@@ -44,7 +44,7 @@ print(paste0("r=", r, " -> ", ifelse(r<=0.5, "STABLE", "UNSTABLE"),
 # Time domain T iteration (vector notation)
 val=alpha*dt/dx^2
 for (j in 0:N) {
-    if (j %% 1000 ==0) {
+    if (j %% 10000==0) {
         nombre=paste0("heattransfer_",
                       str_pad(j, nchar(N), pad='0'), ".png")
         png(nombre)
