@@ -7,7 +7,6 @@ library(stringr)
 
 # Parameters
 N=100000L  # number of iterations
-n=100L  # number of cells (2 are the outer ends)
 n=101L  # number of cells (2 are the outer ends)
 
 L=0.2  # wall thickness (m)
