@@ -1,8 +1,6 @@
 # Heat Transfer Equation (2D Finite-Difference Time-Domain approximation)
 # www.overfitting.net
 
-# iPad 9309
-
 library(png)
 library(stringr)
 setwd("D:/R/43_HeatTransfer")
@@ -56,7 +54,7 @@ heatobjectslines[2:(NROW-1),2:(NCOL-1)]=
     abs(heatobjectsunique[2:(NROW-1),3:NCOL] - heatobjectsunique[2:(NROW-1),2:(NCOL-1)])+
     abs(heatobjectsunique[1:(NROW-2),2:(NCOL-1)] - heatobjectsunique[2:(NROW-1),2:(NCOL-1)])*0+
     abs(heatobjectsunique[2:(NROW-1),1:(NCOL-2)] - heatobjectsunique[2:(NROW-1),2:(NCOL-1)])*0
-heatobjectslines[heatobjectslines !=0 ]=1
+heatobjectslines[heatobjectslines!=0]=1
 
 writePNG(heatobjectslines, "heatobjects_lines.png")
 
