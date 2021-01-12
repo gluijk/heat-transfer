@@ -153,7 +153,5 @@ for (i in 1:10000) a[2:(NROW-1),2:(NCOL-1)]=a[2:(NROW-1),2:(NCOL-1)]+
 end_time=Sys.time()
 print(end_time - start_time)
 
-
-
-indices: 21.06793 secs
-matricial: 5.608142 secs -> ELEGIMOS ESTA FORMA
+# indices: 21.06793 secs
+# matricial: 5.608142 secs -> ELEGIMOS ESTA FORMA
