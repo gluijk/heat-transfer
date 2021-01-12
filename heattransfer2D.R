@@ -3,7 +3,9 @@
 
 library(png)
 library(stringr)
-setwd("D:/R/43_HeatTransfer")
+
+object="letters"
+setwd(paste0("D:/R/43_HeatTransfer/",object,"/"))
 
 
 # Read simulation parameters
@@ -18,7 +20,8 @@ heatobjects=readPNG("heatobjects.png")
 
 plot(as.raster(heatobjects), interpolate=F)  # display objects
 heatobjectsunique=heatobjects[,,3]+heatobjects[,,1]*2+heatobjects[,,2]*4
-writePNG(heatobjectsunique/max(heatobjectsunique), "heatobjects_gray.png")
+writePNG(heatobjectsunique/max(heatobjectsunique),
+         paste0(object,"_gray.png"))
 
 # Stability condition (if UNSTABLE reduce dt or increase dx)
 # Threshold is 1/2 for 1D, 1/4 for 2D, 1/6 for 3D
@@ -56,7 +59,7 @@ heatobjectslines[2:(NROW-1),2:(NCOL-1)]=
     abs(heatobjectsunique[2:(NROW-1),1:(NCOL-2)] - heatobjectsunique[2:(NROW-1),2:(NCOL-1)])*0
 heatobjectslines[heatobjectslines!=0]=1
 
-writePNG(heatobjectslines, "heatobjects_lines.png")
+writePNG(heatobjectslines, paste0(object,"_lines.png"))
 
 # Define working arrays
 # alpha = k/(rho*cp), rho*cp=k/alpha
