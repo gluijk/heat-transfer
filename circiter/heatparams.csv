@@ -1,0 +1,4 @@
+value,desc
+0.01,cell size (m)
+0.2,time step (s)
+100000,number of iterations
