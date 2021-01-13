@@ -9,13 +9,13 @@ setwd(paste0("D:/R/43_HeatTransfer/",object,"/"))
 
 
 # Read simulation parameters
-heatparams=read.table("heatparams.csv", header=T, sep=",")  # Excel CSV
+heatparams=read.table("heatparams.csv", header=T, sep=",")
 dx=heatparams$value[heatparams$desc=='cell size (m)']
 dt=heatparams$value[heatparams$desc=='time step (s)']
 N=as.integer(heatparams$value[heatparams$desc=='number of iterations'])
 
 # Read objects
-heatobjobjparams=read.table("heatobjects.csv", header=T, sep=",")  # Excel CSV
+heatobjobjparams=read.table("heatobjects.csv", header=T, sep=",")
 heatobjects=readPNG("heatobjects.png")
 
 plot(as.raster(heatobjects), interpolate=F)  # display objects
