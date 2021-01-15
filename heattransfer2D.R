@@ -4,7 +4,7 @@
 library(png)
 library(stringr)
 
-object="circiter"
+object="wall"
 setwd(paste0("D:/R/43_HeatTransfer/",object,"/"))
 
 
@@ -15,7 +15,7 @@ dt=heatparams$value[heatparams$desc=='time step (s)']
 N=as.integer(heatparams$value[heatparams$desc=='number of iterations'])
 
 # Read objects
-heatobjobjparams=read.table("heatobjects.csv", header=T, sep=",")
+heatobjparams=read.table("heatobjects.csv", header=T, sep=",")
 heatobjects=readPNG("heatobjects.png")
 
 plot(as.raster(heatobjects), interpolate=F)  # display objects
@@ -25,7 +25,7 @@ writePNG(heatobjectsunique/max(heatobjectsunique),
 
 # Stability condition (if UNSTABLE reduce dt or increase dx)
 # Threshold is 1/2 for 1D, 1/4 for 2D, 1/6 for 3D
-r=dt*max(heatobjobjparams$alpha)/dx^2
+r=dt*max(heatobjparams$alpha)/dx^2
 print(paste0("r=", r, " -> ", ifelse(r<=1/4, "STABLE", "UNSTABLE"),
              " (",round(r/(1/4)*100),"%)"))
 
@@ -75,16 +75,16 @@ T=heatobjectsunique*0
 k=T
 alpha=T
 for (i in 1:NOBJECTS) {
-    T[lst[[i]]]=heatobjobjparams$T[i]
-    k[lst[[i]]]=heatobjobjparams$k[i]
-    alpha[lst[[i]]]=heatobjobjparams$alpha[i]
+    T[lst[[i]]]=heatobjparams$T[i]
+    k[lst[[i]]]=heatobjparams$k[i]
+    alpha[lst[[i]]]=heatobjparams$alpha[i]
 }
 rhocp=k/alpha  # won't use alpha, just k and rhocp=rho*cp
 
 
 # Time domain T iteration (matrix notation)
-MINT=min(heatobjobjparams$T)
-MAXT=max(heatobjobjparams$T)
+MINT=min(heatobjparams$T)
+MAXT=max(heatobjparams$T)
 
 NSNAPSHOTS=200
 SKIP=round(N/NSNAPSHOTS)
@@ -112,9 +112,9 @@ for (j in 0:N) {
     
     # Reset T in the boundaries and apply instantaneous convection on fluids
     for (i in 1:NOBJECTS) {
-        if (heatobjobjparams$type[i]=='boundary') {
-            T[lst[[i]]]=heatobjobjparams$T[i]  # boundary T conditions
-        } else if (heatobjobjparams$type[i]=='fluid') {
+        if (heatobjparams$type[i]=='boundary') {
+            T[lst[[i]]]=heatobjparams$T[i]  # boundary T conditions
+        } else if (heatobjparams$type[i]=='fluid') {
             T[lst[[i]]]=mean(T[lst[[i]]])  # average T = energy conservation           
         }
     }
