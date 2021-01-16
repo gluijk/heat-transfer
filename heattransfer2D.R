@@ -76,7 +76,8 @@ for (i in 1:NOBJECTS) {
 rhocp=k/alpha  # won't use alpha, just k and rhocp=rho*cp
 
 
-# Time domain T iteration (matrix notation)
+# Time domain T iteration using an explicit FD scheme
+# valid for heterogeneous conductivity media
 MINT=min(heatobjparams$T)
 MAXT=max(heatobjparams$T)
 
@@ -90,8 +91,7 @@ for (j in 0:N) {
         writePNG((T-MINT)/(MAXT-MINT), nombre)
     }
 
-    # Iterate T for the whole grid using an explicit FD scheme
-    # valid for heterogeneous conductivity media
+    # Iterate T for the whole grid
     T[2:(NROW-1),2:(NCOL-1)] = T[2:(NROW-1),2:(NCOL-1)] +
         dt/(rhocp[2:(NROW-1),2:(NCOL-1)] * dx^2) *
         (
@@ -106,12 +106,12 @@ for (j in 0:N) {
             (T[2:(NROW-1),1:(NCOL-2)] - T[2:(NROW-1),2:(NCOL-1)])             
         )
     
-    # Reset T in the boundaries and apply instantaneous convection on fluids
+    # Reset T on boundaries and assume instantaneous convection on fluids
     for (i in 1:NOBJECTS) {
         if (heatobjparams$type[i]=='boundary') {
-            T[lst[[i]]]=heatobjparams$T[i]  # boundary T conditions
+            T[lst[[i]]]=heatobjparams$T[i]  # reset T
         } else if (heatobjparams$type[i]=='fluid') {
-            T[lst[[i]]]=mean(T[lst[[i]]])  # average T = energy conservation           
+            T[lst[[i]]]=mean(T[lst[[i]]])  # average T (=energy conservation)           
         }
     }
 }
