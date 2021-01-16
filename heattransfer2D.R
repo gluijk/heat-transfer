@@ -4,7 +4,7 @@
 library(png)
 library(stringr)
 
-object="wall"
+object="vodafone"
 setwd(paste0("D:/R/43_HeatTransfer/",object,"/"))
 
 
@@ -23,6 +23,7 @@ heatobjectsunique=heatobjects[,,3]+heatobjects[,,1]*2+heatobjects[,,2]*4
 writePNG(heatobjectsunique/max(heatobjectsunique),
          paste0(object,"_gray.png"))
 
+
 # Stability condition (if UNSTABLE reduce dt or increase dx)
 # Threshold is 1/2 for 1D, 1/4 for 2D, 1/6 for 3D
 r=dt*max(heatobjparams$alpha)/dx^2
@@ -37,8 +38,8 @@ while (heatobjectsunique[1,i] != INITMARK) i=i+1
 NOBJECTS=i-2  # number of objects (colours) defined
 print(paste0(NOBJECTS, " objects defined"))
 
-colours=heatobjectsunique[1,2:(NOBJECTS+1)]  # keep just colours
-heatobjectsunique=heatobjectsunique[-1,]  # drop first row (colour definition)
+colours=heatobjectsunique[1,2:(NOBJECTS+1)]  # just colours (in first row)
+heatobjectsunique=heatobjectsunique[-1,]  # drop first row
 NROW=nrow(heatobjectsunique)
 NCOL=ncol(heatobjectsunique)
 
@@ -46,27 +47,20 @@ lst=list()
 for (i in 1:NOBJECTS) {
     indices=which(heatobjectsunique==colours[i])
     heatobjectsunique[indices]=i
-    lst[[i]]=indices  # create list of objects
+    lst[[i]]=indices  # create indexing list for each object
 }
 plot(as.raster(heatobjectsunique/NOBJECTS), interpolate=F)
 
-# Plot scene in lines
-heatobjectslines=heatobjectsunique*0
-heatobjectslines[2:(NROW-1),2:(NCOL-1)]=
-    abs(
-        heatobjectsunique[3: NROW,   2:(NCOL-1)] -
+
+# Plot scene contour
+heatobjectscontour=heatobjectsunique*0
+heatobjectscontour[2:(NROW-1),2:(NCOL-1)]=
+    abs(heatobjectsunique[1:(NROW-2),2:(NCOL-1)] -
         heatobjectsunique[2:(NROW-1),2:(NCOL-1)]) +
-    abs(
-        heatobjectsunique[2:(NROW-1),3: NCOL] -
-        heatobjectsunique[2:(NROW-1),2:(NCOL-1)]) +
-    abs(
-        heatobjectsunique[1:(NROW-2),2:(NCOL-1)] -
-        heatobjectsunique[2:(NROW-1),2:(NCOL-1)])*0 +
-    abs(
-        heatobjectsunique[2:(NROW-1),1:(NCOL-2)] -
-        heatobjectsunique[2:(NROW-1),2:(NCOL-1)])*0
-heatobjectslines[heatobjectslines!=0]=1
-writePNG(heatobjectslines, paste0(object,"_lines.png"))
+    abs(heatobjectsunique[2:(NROW-1),1:(NCOL-2)] -
+        heatobjectsunique[2:(NROW-1),2:(NCOL-1)])
+heatobjectscontour[heatobjectscontour!=0]=1
+writePNG(heatobjectscontour, paste0(object,"_contour.png"))
 
 
 # Precalculate working arrays
@@ -89,13 +83,15 @@ MAXT=max(heatobjparams$T)
 NSNAPSHOTS=200
 SKIP=round(N/NSNAPSHOTS)
 for (j in 0:N) {
+    # Snapshot T distribution
     if (j %% SKIP==0) {
         nombre=paste0("heattransfer_",
                       str_pad(j, nchar(N), pad='0'), ".png")
         writePNG((T-MINT)/(MAXT-MINT), nombre)
     }
 
-    # Iterate T in the grid (formulation valid for multilayer walls)
+    # Iterate T for the whole grid using an explicit FD scheme
+    # valid for heterogeneous conductivity media
     T[2:(NROW-1),2:(NCOL-1)] = T[2:(NROW-1),2:(NCOL-1)] +
         dt/(rhocp[2:(NROW-1),2:(NCOL-1)] * dx^2) *
         (
