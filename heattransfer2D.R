@@ -4,7 +4,7 @@
 library(png)
 library(stringr)
 
-object="vodafone"
+object="sink"
 setwd(paste0("D:/R/43_HeatTransfer/",object,"/"))
 
 
@@ -59,7 +59,7 @@ heatobjectscontour[2:(NROW-1),2:(NCOL-1)]=
         heatobjectsunique[2:(NROW-1),2:(NCOL-1)]) +
     abs(heatobjectsunique[2:(NROW-1),1:(NCOL-2)] -
         heatobjectsunique[2:(NROW-1),2:(NCOL-1)])
-heatobjectscontour[heatobjectscontour!=0]=1
+heatobjectscontour[heatobjectscontour != 0]=1
 writePNG(heatobjectscontour, paste0(object,"_contour.png"))
 
 
