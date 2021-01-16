@@ -4,8 +4,7 @@
 library(png)
 library(stringr)
 
-object="sink"
-setwd(paste0("D:/R/43_HeatTransfer/",object,"/"))
+object="cube"
 
 
 # Read simulation parameters
@@ -13,6 +12,7 @@ heatparams=read.table("heatparams.csv", header=T, sep=",")
 dx=heatparams$value[heatparams$desc=='cell size (m)']
 dt=heatparams$value[heatparams$desc=='time step (s)']
 N=as.integer(heatparams$value[heatparams$desc=='number of iterations'])
+NSNAPSHOTS=as.integer(heatparams$value[heatparams$desc=='number of snapshots'])
 
 # Read objects
 heatobjparams=read.table("heatobjects.csv", header=T, sep=",")
@@ -81,7 +81,6 @@ rhocp=k/alpha  # won't use alpha, just k and rhocp=rho*cp
 MINT=min(heatobjparams$T)
 MAXT=max(heatobjparams$T)
 
-NSNAPSHOTS=200
 SKIP=round(N/NSNAPSHOTS)
 for (j in 0:N) {
     # Snapshot T distribution
