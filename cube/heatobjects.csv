@@ -1,4 +1,4 @@
-T,alpha,k,rho,cp,desc,type
+Temp,alpha,k,rho,cp,desc,type
 -10,2.02e-5,0.02,1,1,exterior,boundary
 5,4.72e-7,0.8,1,1,tierra,boundary
 20,2.02e-5,0.02,1,1,interior,boundary
