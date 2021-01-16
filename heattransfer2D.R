@@ -8,14 +8,14 @@ object="cube"
 
 
 # Read simulation parameters
-heatparams=read.table("heatparams.csv", header=T, sep=",")
+heatparams=read.table("heatparams.csv", header=TRUE, sep=",")
 dx=heatparams$value[heatparams$desc=='cell size (m)']
 dt=heatparams$value[heatparams$desc=='time step (s)']
 N=as.integer(heatparams$value[heatparams$desc=='number of iterations'])
 NSNAPSHOTS=as.integer(heatparams$value[heatparams$desc=='number of snapshots'])
 
 # Read objects
-heatobjparams=read.table("heatobjects.csv", header=T, sep=",")
+heatobjparams=read.table("heatobjects.csv", header=TRUE, sep=",")
 heatobjects=readPNG("heatobjects.png")
 
 plot(as.raster(heatobjects), interpolate=F)  # display objects
@@ -65,11 +65,11 @@ writePNG(heatobjectscontour, paste0(object,"_contour.png"))
 
 # Precalculate working arrays
 # alpha=k/(rho*cp), rho*cp=k/alpha
-T=heatobjectsunique*0
-k=T
-alpha=T
+Temp=heatobjectsunique*0
+k=Temp
+alpha=Temp
 for (i in 1:NOBJECTS) {
-    T[lst[[i]]]=heatobjparams$T[i]
+    Temp[lst[[i]]]=heatobjparams$Temp[i]
     k[lst[[i]]]=heatobjparams$k[i]
     alpha[lst[[i]]]=heatobjparams$alpha[i]
 }
@@ -78,8 +78,8 @@ rhocp=k/alpha  # won't use alpha, just k and rhocp=rho*cp
 
 # Time domain T iteration using an explicit FD scheme
 # valid for heterogeneous conductivity media
-MINT=min(heatobjparams$T)
-MAXT=max(heatobjparams$T)
+MINT=min(heatobjparams$Temp)
+MAXT=max(heatobjparams$Temp)
 
 SKIP=round(N/NSNAPSHOTS)
 for (j in 0:N) {
@@ -87,30 +87,30 @@ for (j in 0:N) {
     if (j %% SKIP==0) {
         nombre=paste0("heattransfer_",
                       str_pad(j, nchar(N), pad='0'), ".png")
-        writePNG((T-MINT)/(MAXT-MINT), nombre)
+        writePNG((Temp-MINT)/(MAXT-MINT), nombre)
     }
 
     # Iterate T for the whole grid
-    T[2:(NROW-1),2:(NCOL-1)] = T[2:(NROW-1),2:(NCOL-1)] +
+    Temp[2:(NROW-1),2:(NCOL-1)] = Temp[2:(NROW-1),2:(NCOL-1)] +
         dt/(rhocp[2:(NROW-1),2:(NCOL-1)] * dx^2) *
         (
-            (k[3: NROW   ,2:(NCOL-1)] + k[2:(NROW-1),2:(NCOL-1)])/2 *
-            (T[3: NROW   ,2:(NCOL-1)] - T[2:(NROW-1),2:(NCOL-1)]) +
-            (k[1:(NROW-2),2:(NCOL-1)] + k[2:(NROW-1),2:(NCOL-1)])/2 *
-            (T[1:(NROW-2),2:(NCOL-1)] - T[2:(NROW-1),2:(NCOL-1)]) +
+            (   k[3: NROW   ,2:(NCOL-1)] +    k[2:(NROW-1),2:(NCOL-1)])/2 *
+            (Temp[3: NROW   ,2:(NCOL-1)] - Temp[2:(NROW-1),2:(NCOL-1)]) +
+            (   k[1:(NROW-2),2:(NCOL-1)] +    k[2:(NROW-1),2:(NCOL-1)])/2 *
+            (Temp[1:(NROW-2),2:(NCOL-1)] - Temp[2:(NROW-1),2:(NCOL-1)]) +
                 
-            (k[2:(NROW-1),3: NCOL   ] + k[2:(NROW-1),2:(NCOL-1)])/2 *
-            (T[2:(NROW-1),3: NCOL   ] - T[2:(NROW-1),2:(NCOL-1)]) +
-            (k[2:(NROW-1),1:(NCOL-2)] + k[2:(NROW-1),2:(NCOL-1)])/2 *
-            (T[2:(NROW-1),1:(NCOL-2)] - T[2:(NROW-1),2:(NCOL-1)])             
+            (   k[2:(NROW-1),3: NCOL   ] +    k[2:(NROW-1),2:(NCOL-1)])/2 *
+            (Temp[2:(NROW-1),3: NCOL   ] - Temp[2:(NROW-1),2:(NCOL-1)]) +
+            (   k[2:(NROW-1),1:(NCOL-2)] +    k[2:(NROW-1),2:(NCOL-1)])/2 *
+            (Temp[2:(NROW-1),1:(NCOL-2)] - Temp[2:(NROW-1),2:(NCOL-1)])             
         )
     
     # Reset T on boundaries and assume instantaneous convection on fluids
     for (i in 1:NOBJECTS) {
         if (heatobjparams$type[i]=='boundary') {
-            T[lst[[i]]]=heatobjparams$T[i]  # reset T
+            Temp[lst[[i]]]=heatobjparams$Temp[i]  # reset T
         } else if (heatobjparams$type[i]=='fluid') {
-            T[lst[[i]]]=mean(T[lst[[i]]])  # average T (=energy conservation)           
+            Temp[lst[[i]]]=mean(Temp[lst[[i]]])  # average T (=E conservation)           
         }
     }
 }
