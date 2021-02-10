@@ -4,7 +4,7 @@
 library(png)
 library(stringr)
 
-object="cube"
+object="patch"
 
 
 # Read simulation parameters
@@ -15,6 +15,8 @@ N=as.integer(heatparams$value[heatparams$desc=='number of iterations'])
 NSNAPSHOTS=as.integer(heatparams$value[heatparams$desc=='number of snapshots'])
 
 # Read objects
+# Temp (K or ºC), alpha (m2/s), k (w/(m*K)), q (w/m3), type, desc
+# Vales for type: 'boundary', 'solid', 'fluid', 'source'
 heatobjparams=read.table("heatobjects.csv", header=TRUE, sep=",")
 heatobjects=readPNG("heatobjects.png")
 
@@ -26,7 +28,7 @@ writePNG(heatobjectsunique/max(heatobjectsunique),
 
 # Stability condition (if UNSTABLE reduce dt or increase dx)
 # Threshold is 1/2 for 1D, 1/4 for 2D, 1/6 for 3D
-r=dt*max(heatobjparams$alpha)/dx^2
+r=max(heatobjparams$alpha)*dt/dx^2
 print(paste0("r=", r, " -> ", ifelse(r<=1/4, "STABLE", "UNSTABLE"),
              " (",round(r/(1/4)*100),"%)"))
 
@@ -66,11 +68,16 @@ writePNG(heatobjectscontour, paste0(object,"_contour.png"))
 # Precalculate working arrays
 # alpha=k/(rho*cp), rho*cp=k/alpha
 Temp=heatobjectsunique*0
+for (i in 1:NOBJECTS) {
+    Temp[lst[[i]]]=Temp[lst[[i]]]+1
+}
+if ((min(Temp) != 1) || (max(Temp) != 1)) print("ERROR!") else print("OK")
+
 k=Temp
 alpha=Temp
 for (i in 1:NOBJECTS) {
-    Temp[lst[[i]]]=heatobjparams$Temp[i]
-    k[lst[[i]]]=heatobjparams$k[i]
+    Temp[lst[[i]]] =heatobjparams$Temp[i]
+    k[lst[[i]]]    =heatobjparams$k[i]
     alpha[lst[[i]]]=heatobjparams$alpha[i]
 }
 rhocp=k/alpha  # won't use alpha, just k and rhocp=rho*cp
@@ -83,14 +90,20 @@ MAXT=max(heatobjparams$Temp)
 
 SKIP=round(N/NSNAPSHOTS)
 for (j in 0:N) {
+    MINT=min(Temp)
+    MAXT=max(Temp)
+    
     # Snapshot T distribution
     if (j %% SKIP==0) {
         nombre=paste0("heattransfer_",
                       str_pad(j, nchar(N), pad='0'), ".png")
         writePNG((Temp-MINT)/(MAXT-MINT), nombre)
+        # print(paste0(j,"/",N,": Temp increases by ",
+        #                  mean(dt/rhocp[lst[[3]]]*heatobjparams$q[3]), " / MIN=",
+        #              MINT, " - MAX=", MAXT))
     }
 
-    # Iterate T for the whole grid
+    # Iterate T for the whole grid using the standard formulae
     Temp[2:(NROW-1),2:(NCOL-1)] = Temp[2:(NROW-1),2:(NCOL-1)] +
         dt/(rhocp[2:(NROW-1),2:(NCOL-1)] * dx^2) *
         (
@@ -105,12 +118,15 @@ for (j in 0:N) {
             (Temp[2:(NROW-1),1:(NCOL-2)] - Temp[2:(NROW-1),2:(NCOL-1)])             
         )
     
-    # Reset T on boundaries and assume instantaneous convection on fluids
+    # Special materials: boundaries, fluids and internal heat sources
     for (i in 1:NOBJECTS) {
         if (heatobjparams$type[i]=='boundary') {
-            Temp[lst[[i]]]=heatobjparams$Temp[i]  # reset T
+            Temp[lst[[i]]] = heatobjparams$Temp[i]  # constant T
         } else if (heatobjparams$type[i]=='fluid') {
-            Temp[lst[[i]]]=mean(Temp[lst[[i]]])  # average T (=E conservation)           
+            Temp[lst[[i]]] = mean(Temp[lst[[i]]])  # instantaneous convection
+        } else if (heatobjparams$type[i]=='source') {
+            Temp[lst[[i]]] = Temp[lst[[i]]] +
+                dt/rhocp[lst[[i]]]*heatobjparams$q[i]  # heat source
         }
     }
 }
