@@ -4,7 +4,7 @@
 library(png)
 library(stringr)
 
-object="patch"
+object="walls"
 
 
 # Read simulation parameters
@@ -45,11 +45,27 @@ heatobjectsunique=heatobjectsunique[-1,]  # drop first row
 NROW=nrow(heatobjectsunique)
 NCOL=ncol(heatobjectsunique)
 
+# Row/Col precalculation for 'insulate' rectangular objects
+MINROW=array(0,NOBJECTS)
+MAXROW=array(0,NOBJECTS)
+MINCOL=array(0,NOBJECTS)
+MAXCOL=array(0,NOBJECTS)
+
 lst=list()
 for (i in 1:NOBJECTS) {
-    indices=which(heatobjectsunique==colours[i])
+    indices=which(heatobjectsunique==colours[i],
+                  arr.ind=(heatobjparams$type[i]=='insulate'))
     heatobjectsunique[indices]=i
     lst[[i]]=indices  # create indexing list for each object
+    
+    # Square limits of 'insulate' rectangular objects
+    if (heatobjparams$type[i]=='insulate') {
+        MINROW[i]=min(lst[[i]][,1])
+        MAXROW[i]=max(lst[[i]][,1])
+        
+        MINCOL[i]=min(lst[[i]][,2])
+        MAXCOL[i]=max(lst[[i]][,2])        
+    }
 }
 plot(as.raster(heatobjectsunique/NOBJECTS), interpolate=F)
 
@@ -80,7 +96,8 @@ for (i in 1:NOBJECTS) {
     k[lst[[i]]]    =heatobjparams$k[i]
     alpha[lst[[i]]]=heatobjparams$alpha[i]
 }
-rhocp=k/alpha  # won't use alpha, just k and rhocp=rho*cp
+rhocp=k/alpha  # we won't use alpha, just k and rhocp (=rho*cp)
+
 
 
 # Time domain T iteration using an explicit FD scheme
@@ -88,6 +105,7 @@ rhocp=k/alpha  # won't use alpha, just k and rhocp=rho*cp
 MINT=min(heatobjparams$Temp)
 MAXT=max(heatobjparams$Temp)
 
+tempe=c()
 SKIP=round(N/NSNAPSHOTS)
 for (j in 0:N) {
     MINT=min(Temp)
@@ -95,12 +113,21 @@ for (j in 0:N) {
     
     # Snapshot T distribution
     if (j %% SKIP==0) {
+        # Save PNG
         nombre=paste0("heattransfer_",
                       str_pad(j, nchar(N), pad='0'), ".png")
-        writePNG((Temp-MINT)/(MAXT-MINT), nombre)
-        # print(paste0(j,"/",N,": Temp increases by ",
-        #                  mean(dt/rhocp[lst[[3]]]*heatobjparams$q[3]), " / MIN=",
-        #              MINT, " - MAX=", MAXT))
+        writePNG(((Temp-MINT)/(MAXT-MINT))^0.5, nombre)
+        
+        # Print AVG T per object
+        txt=paste0("Iter ", j, "/", N, ": ")
+        for (i in 1:NOBJECTS) {
+            txt=paste0(txt, ifelse(i==1,""," - "), heatobjparams$desc[i], ": ",
+                       round(min(Temp[lst[[i]]]), 1), "/",
+                       round(mean(Temp[lst[[i]]]), 1), "/",
+                       round(max(Temp[lst[[i]]]), 1))
+        }
+        print(txt)
+        tempe=c(tempe, mean(Temp[lst[[7]]]))
     }
 
     # Iterate T for the whole grid using the standard formulae
@@ -127,6 +154,21 @@ for (j in 0:N) {
         } else if (heatobjparams$type[i]=='source') {
             Temp[lst[[i]]] = Temp[lst[[i]]] +
                 dt/rhocp[lst[[i]]]*heatobjparams$q[i]  # heat source
+        } else if (heatobjparams$type[i]=='insulate') {  # copy T
+            # Copy T along top and bottom
+            Temp[MINROW[i], MINCOL[i]:MAXCOL[i]]=
+                Temp[MINROW[i]-1, MINCOL[i]:MAXCOL[i]]
+            Temp[MAXROW[i], MINCOL[i]:MAXCOL[i]]=
+                Temp[MAXROW[i]+1, MINCOL[i]:MAXCOL[i]]
+            
+            # Copy T along left and right
+            Temp[MINROW[i]:MAXROW[i], MINCOL[i]]=
+                Temp[MINROW[i]:MAXROW[i], MINCOL[i]-1]
+            Temp[MINROW[i]:MAXROW[i], MAXCOL[i]]=
+                Temp[MINROW[i]:MAXROW[i], MAXCOL[i]+1]
         }
     }
 }
+
+
+
