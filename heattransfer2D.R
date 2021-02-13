@@ -47,19 +47,19 @@ NCOL=ncol(heatobjectsunique)
 
 # Row/Col precalculation for 'insulate' rectangular objects
 MINROW=array(0,NOBJECTS)
-MAXROW=array(0,NOBJECTS)
-MINCOL=array(0,NOBJECTS)
-MAXCOL=array(0,NOBJECTS)
+MAXROW=MINROW
+MINCOL=MINROW
+MAXCOL=MINROW
 
 lst=list()
 for (i in 1:NOBJECTS) {
-    indices=which(heatobjectsunique==colours[i],
-                  arr.ind=(heatobjparams$type[i]=='insulate'))
+    FLAG_INSULATE=(heatobjparams$type[i]=='insulate')
+    indices=which(heatobjectsunique==colours[i], arr.ind=FLAG_INSULATE)
     heatobjectsunique[indices]=i
     lst[[i]]=indices  # create indexing list for each object
     
     # Square limits of 'insulate' rectangular objects
-    if (heatobjparams$type[i]=='insulate') {
+    if (FLAG_INSULATE) {
         MINROW[i]=min(lst[[i]][,1])
         MAXROW[i]=max(lst[[i]][,1])
         
