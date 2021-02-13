@@ -133,7 +133,7 @@ for (j in 0:N) {
         tempe=c(tempe, mean(Temp[lst[[MAINOBJECT]]]))
     }
 
-    # Iterate T for the whole grid using the standard formulae
+    # Iterate T for the whole grid using the standard formula
     Temp[2:(NROW-1),2:(NCOL-1)] = Temp[2:(NROW-1),2:(NCOL-1)] +
         dt/(rhocp[2:(NROW-1),2:(NCOL-1)] * dx^2) *
         (
@@ -148,7 +148,7 @@ for (j in 0:N) {
             (Temp[2:(NROW-1),1:(NCOL-2)] - Temp[2:(NROW-1),2:(NCOL-1)])             
         )
     
-    # Special materials: boundaries, fluids and internal heat sources
+    # Special materials: boundaries, fluids, internal sources and insulates
     for (i in 1:NOBJECTS) {
         if (heatobjparams$type[i]=='boundary') {
             Temp[lst[[i]]] = heatobjparams$Temp[i]  # constant T
