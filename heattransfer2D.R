@@ -105,7 +105,10 @@ rhocp=k/alpha  # we won't use alpha, just k and rhocp (=rho*cp)
 MINT=min(heatobjparams$Temp)
 MAXT=max(heatobjparams$Temp)
 
+# Object of special interest
+MAINOBJECT=7
 tempe=c()
+
 SKIP=round(N/NSNAPSHOTS)
 for (j in 0:N) {
     MINT=min(Temp)
@@ -127,7 +130,7 @@ for (j in 0:N) {
                        round(max(Temp[lst[[i]]]), 1))
         }
         print(txt)
-        tempe=c(tempe, mean(Temp[lst[[7]]]))
+        tempe=c(tempe, mean(Temp[lst[[MAINOBJECT]]]))
     }
 
     # Iterate T for the whole grid using the standard formulae
@@ -170,5 +173,8 @@ for (j in 0:N) {
     }
 }
 
+# Evolution of T in object of special interest
+plot(seq(0,dt*N/60,length.out=length(tempe)), tempe, type='l', col='red',
+     xlab='Time (min)', ylab='T (ºC/K)', main=heatobjparams$desc[MAINOBJECT])
 
 
