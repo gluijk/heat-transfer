@@ -158,7 +158,7 @@ for (j in 0:N) {
             Temp[lst[[i]]] = Temp[lst[[i]]] +
                 dt/rhocp[lst[[i]]]*heatobjparams$q[i]  # heat source
         } else if (heatobjparams$type[i]=='insulate') {  # copy T
-            Temp[lst[[i]]]=heatobjparams$Temp[i]
+            Temp[lst[[i]]]=heatobjparams$Temp[i]  # reset T
             
             # Copy T along top and bottom
             Temp[MINROW[i], MINCOL[i]:MAXCOL[i]]=
@@ -172,6 +172,15 @@ for (j in 0:N) {
             Temp[MINROW[i]:MAXROW[i], MAXCOL[i]]=
                 Temp[MINROW[i]:MAXROW[i], MAXCOL[i]+1]
             
+            # Refine 4 corners
+            Temp[MINROW[i], MINCOL[i]]=
+                (Temp[MINROW[i]-1, MINCOL[i]]+Temp[MINROW[i], MINCOL[i]-1])/2
+            Temp[MAXROW[i], MINCOL[i]]=
+                (Temp[MAXROW[i]+1, MINCOL[i]]+Temp[MAXROW[i], MINCOL[i]-1])/2
+            Temp[MINROW[i], MAXCOL[i]]=
+                (Temp[MINROW[i]-1, MAXCOL[i]]+Temp[MINROW[i], MAXCOL[i]+1])/2
+            Temp[MAXROW[i], MAXCOL[i]]=
+                (Temp[MAXROW[i]+1, MAXCOL[i]]+Temp[MAXROW[i], MAXCOL[i]+1])/2
         }
     }
 }
