@@ -27,11 +27,13 @@ writePNG(heatobjectsunique/max(heatobjectsunique),
          paste0(object,"_gray.png"))
 
 
-# Stability condition (if UNSTABLE reduce dt or increase dx)
+# Stability condition (if UNSTABLE reduce dt and/or increase dx)
 # Threshold is 1/2 for 1D, 1/4 for 2D, 1/6 for 3D
 r=max(heatobjparams$alpha)*dt/dx^2
-print(paste0("r=", r, " -> ", ifelse(r<=1/4, "STABLE", "UNSTABLE"),
-             " (",round(r/(1/4)*100),"%)"))
+print(paste0(ifelse(r<=1/4, "OK", "ERROR"),
+            ": r=", r, " (",round(r/(1/4)*100),"%)",
+            " -> ", ifelse(r<=1/4, "STABLE",
+            "UNSTABLE (reduce dt and/or increase dx)")))
 
 
 # Obtain unique colours and round to material position
@@ -59,13 +61,17 @@ for (i in 1:NMAT) {
     heatobjectsunique[indices]=i
     lst[[i]]=indices  # create indexing list for each object
     
-    # Corners of 'insulate' rectangular object
+    # Precalculate corners of 'insulate' rectangular object
     if (FLAG_INSULATE) {
         MINROW[i]=min(lst[[i]][,1])
         MAXROW[i]=max(lst[[i]][,1])
-        
         MINCOL[i]=min(lst[[i]][,2])
-        MAXCOL[i]=max(lst[[i]][,2])        
+        MAXCOL[i]=max(lst[[i]][,2])
+        
+        # Check if insulate material is made of a single rectangle
+        if ((MAXROW[i]-MINROW[i]+1)*(MAXCOL[i]-MINCOL[i]+1)
+            != nrow(lst[[i]])) print(paste0("ERROR: insulate material ",i,
+            " ('",heatobjparams$desc[i],"') is not a single rectangle"))
     }
 }
 plot(as.raster(heatobjectsunique/NMAT), interpolate=F)
@@ -82,13 +88,14 @@ heatobjectscontour[heatobjectscontour != 0]=1
 writePNG(heatobjectscontour, paste0(object,"_contour.png"))
 
 
-# Precalculate working arrays
+# Precalculate arrays
 # alpha=k/(rho*cp), rho*cp=k/alpha
 Temp=heatobjectsunique*0
 for (i in 1:NMAT) {
     Temp[lst[[i]]]=Temp[lst[[i]]]+1
 }
-if ((min(Temp) != 1) || (max(Temp) != 1)) print("ERROR!") else print("OK")
+if (min(Temp) != 1) print(paste0("ERROR: wrong colours in 'heatobjects.png', ",
+    "some material colour is missing in the definition"))
 
 k=Temp
 alpha=Temp
@@ -107,7 +114,7 @@ MINT=min(heatobjparams$Temp)
 MAXT=max(heatobjparams$Temp)
 
 # Material (object) of special interest
-MAINMAT=5
+MAINMAT=7
 tempe=c()
 
 SKIP=round(N/NSNAPSHOTS)
@@ -159,29 +166,60 @@ for (j in 0:N) {
             Temp[lst[[i]]] = Temp[lst[[i]]] +
                 dt/rhocp[lst[[i]]]*heatobjparams$q[i]  # heat source
         } else if (heatobjparams$type[i]=='insulate') {  # copy T
-            Temp[lst[[i]]]=heatobjparams$Temp[i]  # reset T
+            Temp[lst[[i]]] = heatobjparams$Temp[i]  # reset T
             
             # Copy T along top and bottom
-            Temp[MINROW[i], MINCOL[i]:MAXCOL[i]]=
+            if (MINROW[i]>1) Temp[MINROW[i], MINCOL[i]:MAXCOL[i]] =
                 Temp[MINROW[i]-1, MINCOL[i]:MAXCOL[i]]
-            Temp[MAXROW[i], MINCOL[i]:MAXCOL[i]]=
+            if (MAXROW[i]<NROW) Temp[MAXROW[i], MINCOL[i]:MAXCOL[i]] =
                 Temp[MAXROW[i]+1, MINCOL[i]:MAXCOL[i]]
             
             # Copy T along left and right
-            Temp[MINROW[i]:MAXROW[i], MINCOL[i]]=
+            if (MINCOL[i]>1) Temp[MINROW[i]:MAXROW[i], MINCOL[i]] =
                 Temp[MINROW[i]:MAXROW[i], MINCOL[i]-1]
-            Temp[MINROW[i]:MAXROW[i], MAXCOL[i]]=
+            if (MAXCOL[i]<NCOL) Temp[MINROW[i]:MAXROW[i], MAXCOL[i]] =
                 Temp[MINROW[i]:MAXROW[i], MAXCOL[i]+1]
             
-            # Refine 4 corners
-            Temp[MINROW[i], MINCOL[i]]=
-                (Temp[MINROW[i]-1, MINCOL[i]]+Temp[MINROW[i], MINCOL[i]-1])/2
-            Temp[MAXROW[i], MINCOL[i]]=
-                (Temp[MAXROW[i]+1, MINCOL[i]]+Temp[MAXROW[i], MINCOL[i]-1])/2
-            Temp[MINROW[i], MAXCOL[i]]=
-                (Temp[MINROW[i]-1, MAXCOL[i]]+Temp[MINROW[i], MAXCOL[i]+1])/2
-            Temp[MAXROW[i], MAXCOL[i]]=
-                (Temp[MAXROW[i]+1, MAXCOL[i]]+Temp[MAXROW[i], MAXCOL[i]+1])/2
+            # Refine T on 4 corners:
+            # Bottom-Left
+            if (MINROW[i]>1 & MINCOL[i]>1) {
+                Temp[MINROW[i], MINCOL[i]] =
+                  (Temp[MINROW[i]-1, MINCOL[i]]+Temp[MINROW[i], MINCOL[i]-1])/2
+            } else if (MINROW[i]>1) {  # MINCOL[i]=1
+                Temp[MINROW[i], MINCOL[i]] = Temp[MINROW[i]-1, MINCOL[i]]              
+            } else if (MINCOL[i]>1) {  # MINROW[i]=1
+                Temp[MINROW[i], MINCOL[i]] = Temp[MINROW[i], MINCOL[i]-1]                 
+            }
+            
+            # Top-Left
+            if (MAXROW[i]<NROW & MINCOL[i]>1) {
+                Temp[MAXROW[i], MINCOL[i]] =
+                  (Temp[MAXROW[i]+1, MINCOL[i]]+Temp[MAXROW[i], MINCOL[i]-1])/2
+            } else if (MAXROW[i]<NROW) {  # MINCOL[i]=1
+                Temp[MAXROW[i], MINCOL[i]] = Temp[MAXROW[i]+1, MINCOL[i]]        
+            } else if (MINCOL[i]>1) {  # MAXROW[i]=NROW
+                Temp[MAXROW[i], MINCOL[i]] = Temp[MAXROW[i], MINCOL[i]-1]               
+            }
+            
+            # Bottom-Right
+            if (MINROW[i]>1 & MAXCOL[i]<NCOL) {
+                Temp[MINROW[i], MAXCOL[i]] =
+                  (Temp[MINROW[i]-1, MAXCOL[i]]+Temp[MINROW[i], MAXCOL[i]+1])/2
+            } else if (MINROW[i]>1) {  # MAXCOL[i]=NCOL
+                Temp[MINROW[i], MAXCOL[i]] = Temp[MINROW[i]-1, MAXCOL[i]]              
+            } else if (MAXCOL[i]<NCOL) {  # MINROW[i]=1
+                Temp[MINROW[i], MAXCOL[i]] = Temp[MINROW[i], MAXCOL[i]+1]                 
+            }
+
+            # Top-Right
+            if (MAXROW[i]<NROW & MAXCOL[i]<NCOL) {
+                Temp[MAXROW[i], MAXCOL[i]] =
+                  (Temp[MAXROW[i]+1, MAXCOL[i]]+Temp[MAXROW[i], MAXCOL[i]+1])/2
+            } else if (MAXROW[i]<NROW) {  # MAXCOL[i]=NCOL
+                Temp[MAXROW[i], MAXCOL[i]] = Temp[MAXROW[i]+1, MAXCOL[i]]              
+            } else if (MAXCOL[i]<NCOL) {  # MAXROW[i]=NROW
+                Temp[MAXROW[i], MAXCOL[i]] = Temp[MAXROW[i], MAXCOL[i]+1]                 
+            }
         }
     }
 }
