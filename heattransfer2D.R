@@ -37,28 +37,28 @@ print(paste0("r=", r, " -> ", ifelse(r<=1/4, "STABLE", "UNSTABLE"),
 INITMARK=heatobjectsunique[1,1]
 i=2
 while (heatobjectsunique[1,i] != INITMARK) i=i+1
-NOBJECTS=i-2  # number of objects (colours) defined
-print(paste0(NOBJECTS, " objects defined"))
+NMAT=i-2  # number of materials (colours) defined
+print(paste0(NMAT, " materials defined"))
 
-colours=heatobjectsunique[1,2:(NOBJECTS+1)]  # just colours (in first row)
+colours=heatobjectsunique[1,2:(NMAT+1)]  # just colours (in first row)
 heatobjectsunique=heatobjectsunique[-1,]  # drop first row
 NROW=nrow(heatobjectsunique)
 NCOL=ncol(heatobjectsunique)
 
 # Row/Col precalculation for 'insulate' rectangular objects
-MINROW=array(0,NOBJECTS)
+MINROW=array(0,NMAT)
 MAXROW=MINROW
 MINCOL=MINROW
 MAXCOL=MINROW
 
 lst=list()
-for (i in 1:NOBJECTS) {
+for (i in 1:NMAT) {
     FLAG_INSULATE=(heatobjparams$type[i]=='insulate')
     indices=which(heatobjectsunique==colours[i], arr.ind=FLAG_INSULATE)
     heatobjectsunique[indices]=i
     lst[[i]]=indices  # create indexing list for each object
     
-    # Square limits of 'insulate' rectangular objects
+    # Corners of 'insulate' rectangular object
     if (FLAG_INSULATE) {
         MINROW[i]=min(lst[[i]][,1])
         MAXROW[i]=max(lst[[i]][,1])
@@ -67,7 +67,7 @@ for (i in 1:NOBJECTS) {
         MAXCOL[i]=max(lst[[i]][,2])        
     }
 }
-plot(as.raster(heatobjectsunique/NOBJECTS), interpolate=F)
+plot(as.raster(heatobjectsunique/NMAT), interpolate=F)
 
 
 # Plot scene contour
@@ -84,14 +84,14 @@ writePNG(heatobjectscontour, paste0(object,"_contour.png"))
 # Precalculate working arrays
 # alpha=k/(rho*cp), rho*cp=k/alpha
 Temp=heatobjectsunique*0
-for (i in 1:NOBJECTS) {
+for (i in 1:NMAT) {
     Temp[lst[[i]]]=Temp[lst[[i]]]+1
 }
 if ((min(Temp) != 1) || (max(Temp) != 1)) print("ERROR!") else print("OK")
 
 k=Temp
 alpha=Temp
-for (i in 1:NOBJECTS) {
+for (i in 1:NMAT) {
     Temp[lst[[i]]] =heatobjparams$Temp[i]
     k[lst[[i]]]    =heatobjparams$k[i]
     alpha[lst[[i]]]=heatobjparams$alpha[i]
@@ -105,8 +105,8 @@ rhocp=k/alpha  # we won't use alpha, just k and rhocp (=rho*cp)
 MINT=min(heatobjparams$Temp)
 MAXT=max(heatobjparams$Temp)
 
-# Object of special interest
-MAINOBJECT=5
+# Material (object) of special interest
+MAINMAT=5
 tempe=c()
 
 SKIP=round(N/NSNAPSHOTS)
@@ -121,16 +121,16 @@ for (j in 0:N) {
                       str_pad(j, nchar(N), pad='0'), ".png")
         writePNG(((Temp-MINT)/(MAXT-MINT))^0.2, nombre)
         
-        # Print AVG T per object
+        # Print AVG T per material
         txt=paste0("Iter ", j, "/", N, ": ")
-        for (i in 1:NOBJECTS) {
+        for (i in 1:NMAT) {
             txt=paste0(txt, ifelse(i==1,""," - "), heatobjparams$desc[i], ": ",
                        round(min(Temp[lst[[i]]]), 1), "/",
                        round(mean(Temp[lst[[i]]]), 1), "/",
                        round(max(Temp[lst[[i]]]), 1))
         }
         print(txt)
-        tempe=c(tempe, mean(Temp[lst[[MAINOBJECT]]]))
+        tempe=c(tempe, mean(Temp[lst[[MAINMAT]]]))
     }
 
     # Iterate T for the whole grid using the standard formula
@@ -149,7 +149,7 @@ for (j in 0:N) {
         )
     
     # Special materials: boundaries, fluids, internal sources and insulates
-    for (i in 1:NOBJECTS) {
+    for (i in 1:NMAT) {
         if (heatobjparams$type[i]=='boundary') {
             Temp[lst[[i]]] = heatobjparams$Temp[i]  # constant T
         } else if (heatobjparams$type[i]=='fluid') {
@@ -187,6 +187,6 @@ for (j in 0:N) {
 
 # Evolution of T in object of special interest
 plot(seq(0,dt*N/60,length.out=length(tempe)), tempe, type='l', col='red',
-     xlab='Time (min)', ylab='T (ºC/K)', main=heatobjparams$desc[MAINOBJECT])
+     xlab='Time (min)', ylab='T (ºC/K)', main=heatobjparams$desc[MAINMAT])
 
 
