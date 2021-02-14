@@ -1,5 +1,6 @@
 # Heat Transfer Equation (2D Finite-Difference Time-Domain approximation)
 # www.overfitting.net
+# https://www.overfitting.net/2021/02/transferencia-de-calor-por-elementos_10.html
 
 library(png)
 library(stringr)
@@ -33,7 +34,7 @@ print(paste0("r=", r, " -> ", ifelse(r<=1/4, "STABLE", "UNSTABLE"),
              " (",round(r/(1/4)*100),"%)"))
 
 
-# Obtain unique colours and round to object position
+# Obtain unique colours and round to material position
 INITMARK=heatobjectsunique[1,1]
 i=2
 while (heatobjectsunique[1,i] != INITMARK) i=i+1
