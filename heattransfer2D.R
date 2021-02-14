@@ -106,7 +106,7 @@ MINT=min(heatobjparams$Temp)
 MAXT=max(heatobjparams$Temp)
 
 # Object of special interest
-MAINOBJECT=7
+MAINOBJECT=5
 tempe=c()
 
 SKIP=round(N/NSNAPSHOTS)
@@ -119,7 +119,7 @@ for (j in 0:N) {
         # Save PNG
         nombre=paste0("heattransfer_",
                       str_pad(j, nchar(N), pad='0'), ".png")
-        writePNG(((Temp-MINT)/(MAXT-MINT))^0.5, nombre)
+        writePNG(((Temp-MINT)/(MAXT-MINT))^0.2, nombre)
         
         # Print AVG T per object
         txt=paste0("Iter ", j, "/", N, ": ")
@@ -158,6 +158,8 @@ for (j in 0:N) {
             Temp[lst[[i]]] = Temp[lst[[i]]] +
                 dt/rhocp[lst[[i]]]*heatobjparams$q[i]  # heat source
         } else if (heatobjparams$type[i]=='insulate') {  # copy T
+            Temp[lst[[i]]]=heatobjparams$Temp[i]
+            
             # Copy T along top and bottom
             Temp[MINROW[i], MINCOL[i]:MAXCOL[i]]=
                 Temp[MINROW[i]-1, MINCOL[i]:MAXCOL[i]]
@@ -169,6 +171,7 @@ for (j in 0:N) {
                 Temp[MINROW[i]:MAXROW[i], MINCOL[i]-1]
             Temp[MINROW[i]:MAXROW[i], MAXCOL[i]]=
                 Temp[MINROW[i]:MAXROW[i], MAXCOL[i]+1]
+            
         }
     }
 }
