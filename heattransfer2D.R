@@ -5,7 +5,7 @@
 library(png)
 library(stringr)
 
-object="walls"
+object="layers"
 
 
 # Read simulation parameters
@@ -17,7 +17,7 @@ NSNAPSHOTS=as.integer(heatparams$value[heatparams$desc=='number of snapshots'])
 
 # Read objects
 # Temp (K or ºC), alpha (m2/s), k (w/(m*K)), q (w/m3), type, desc
-# Vales for type: 'boundary', 'solid', 'fluid', 'source'
+# Valid values for type: 'boundary', 'solid', 'source', 'fluid', 'insulate'
 heatobjparams=read.table("heatobjects.csv", header=TRUE, sep=",")
 heatobjects=readPNG("heatobjects.png")
 
@@ -107,16 +107,16 @@ for (i in 1:NMAT) {
 rhocp=k/alpha  # we won't use alpha, just k and rhocp (=rho*cp)
 
 
-
 # Time domain T iteration using an explicit FD scheme
 # valid for heterogeneous conductivity media
 MINT=min(heatobjparams$Temp)
 MAXT=max(heatobjparams$Temp)
 
 # Material (object) of special interest
-MAINMAT=7
+MAINMAT=4
 tempe=c()
 
+GAMMA=1
 SKIP=round(N/NSNAPSHOTS)
 for (j in 0:N) {
     MINT=min(Temp)
@@ -127,7 +127,7 @@ for (j in 0:N) {
         # Save PNG
         nombre=paste0("heattransfer_",
                       str_pad(j, nchar(N), pad='0'), ".png")
-        writePNG(((Temp-MINT)/(MAXT-MINT))^0.2, nombre)
+        writePNG(((Temp-MINT)/(MAXT-MINT))^(1/GAMMA), nombre)
         
         # Print AVG T per material
         txt=paste0("Iter ", j, "/", N, ": ")
@@ -139,6 +139,8 @@ for (j in 0:N) {
         }
         print(txt)
         tempe=c(tempe, mean(Temp[lst[[MAINMAT]]]))
+        plot(Temp[20,], type='l', col='red')
+        abline(v=c(9,47,86,124), lty='dotted')
     }
 
     # Iterate T for the whole grid using the standard formula
@@ -229,3 +231,6 @@ plot(seq(0,dt*N/60,length.out=length(tempe)), tempe, type='l', col='red',
      xlab='Time (min)', ylab='T (ºC/K)', main=heatobjparams$desc[MAINMAT])
 
 
+plot(Temp[4,], type='l', col='red')
+for (i in 5:41) lines(Temp[i,], type='l', col=i)
+abline(v=c(9,47,86,124))
