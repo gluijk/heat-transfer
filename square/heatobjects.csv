@@ -1,0 +1,9 @@
+Temp,alpha,k,q,type,desc
+200,1.25e-5,50,0,solid,acero1
+300,2.02e-5,0.02,0,boundary,border1
+200,2.02e-5,0.02,0,boundary,border2
+100,2.02e-5,0.02,0,boundary,border3
+200,2.02e-5,0.02,0,boundary,border4
+200,2.02e-5,0.02,0,insulate,aislante1
+200,2.02e-5,0.02,0,insulate,aislante2
+200,1.25e-5,50,0,solid,acero2
