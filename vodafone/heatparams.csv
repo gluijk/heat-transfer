@@ -3,3 +3,4 @@ value,desc
 0.2,time step (s)
 100000,number of iterations
 200,number of snapshots
+1,gamma
