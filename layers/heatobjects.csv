@@ -1,0 +1,8 @@
+Temp,alpha,k,q,type,desc
+0,2.02e-5,0.02,0,boundary,exterior1
+50,0.75e-6,0.8,0,solid,hormigon
+50,1.25e-5,80,0,solid,acero
+50,0.75e-6,0.2,0,solid,madera
+100,2.02e-5,0.02,0,boundary,exterior2
+50,2.02e-5,0.02,0,insulate,aislanteup
+50,2.02e-5,0.02,0,insulate,aislantedown
