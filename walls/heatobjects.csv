@@ -1,9 +1,10 @@
 Temp,alpha,k,q,type,desc
 0,2.02e-5,0.02,0,boundary,exterior
 0,0.75e-6,0.8,0,solid,hormigon
-0,9.19e-8,0.148,0,solid,aislante
+0,9.19e-8,0.148,0,solid,aislantereal
 0,1.25e-5,50,0,solid,acero
-0,2.02e-5,0.02,0,insulate,aislante
+0,2.02e-5,0.02,0,insulate,aislante1
+0,2.02e-5,0.02,0,insulate,aislante2
 0,2.02e-5,0.02,0,fluid,int1
 0,2.02e-5,0.02,0,fluid,int2
 0,2.02e-5,0.02,0,fluid,int3
