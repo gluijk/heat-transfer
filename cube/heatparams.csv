@@ -1,5 +1,6 @@
 value,desc
 0.01,cell size (m)
-0.1,time step (s)
+0.4,time step (s)
 100000,number of iterations
 200,number of snapshots
+1,gamma
