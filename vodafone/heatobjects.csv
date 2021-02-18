@@ -1,4 +1,4 @@
-Temp,alpha,k,rho,cp,type,desc
-0,9.19e-8,0.13,1,1,solid,aislante
-100,1.25e-5,50,1,1,boundary,heatsource
-0,1.25e-5,180,1,1,solid,acero
+Temp,alpha,k,q,type,desc
+0,9.19e-8,0.13,0,solid,aislante
+100,1.25e-5,50,0,boundary,heatsource
+0,1.25e-5,180,0,solid,acero
