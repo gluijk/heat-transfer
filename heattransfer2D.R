@@ -329,7 +329,7 @@ for (j in 0:N) {
 
 # Plot mean(T) evolution for every object
 for (i in 1:NMAT) {
-    png(paste0("tprofile_",heatobjparams$desc[i],".png"),width=512, height=400)
+    png(paste0("temperature",heatobjparams$desc[i],".png"),width=512, height=400)
     plot(seq(0,dt*N/60,length.out=ncol(T_Evol)), T_Evol[i,],
          type='l', col='red',
          xlab='Time (min)', ylab='T (ºC/K)', main=heatobjparams$desc[i],
