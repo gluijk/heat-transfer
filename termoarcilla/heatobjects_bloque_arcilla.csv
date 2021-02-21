@@ -1,0 +1,15 @@
+Temp,alpha,k,q,type,desc
+0,2.02e-5,0.02,0,boundary,aireexterior
+0,4.91e-7,0.814,0,solid,arcilla
+0,2.02e-5,0.02,0,insulate,aislanteup
+0,2.02e-5,0.02,0,insulate,aislantedown
+100,2.02e-5,0.02,0,boundary,accaliente
+0,2.02e-5,0.02,0,fluid,aire01
+0,2.02e-5,0.02,0,fluid,aire02
+0,2.02e-5,0.02,0,fluid,aire03
+0,2.02e-5,0.02,0,fluid,aire04
+0,2.02e-5,0.02,0,fluid,aire05
+0,2.02e-5,0.02,0,fluid,aire06
+0,2.02e-5,0.02,0,fluid,aire07
+0,2.02e-5,0.02,0,fluid,aire08
+0,2.02e-5,0.02,0,fluid,aireint
