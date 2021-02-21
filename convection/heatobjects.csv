@@ -1,5 +1,0 @@
-Temp,alpha,k,rho,cp,desc,type
-40,0.75e-6,0.8,1,1,hormigon,solid
-0,2.02e-5,0.026,1,1,airesolido,solid
-0,2.02e-5,0.026,1,1,airefluido,fluid
-40,0.75e-6,0.8,1,1,hormigon,boundary
