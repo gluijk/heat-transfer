@@ -10,7 +10,7 @@ library(viridis)
 OBJPARAMS="heatobjects.csv"  # objects thermal definition
 OBJCOLOURS="heatobjects.png"  # simulation geometry definition
 SIMPARAMS="heatparams.csv"  # simulation parameters
-object="isoflux"  # simulation name
+object="bloque"  # simulation name
 
 
 # Read simulation parameters
@@ -30,8 +30,6 @@ heatobjects=readPNG(OBJCOLOURS)
 
 plot(as.raster(heatobjects), interpolate=F)  # display objects
 heatobjectsunique=heatobjects[,,3]+heatobjects[,,1]*2+heatobjects[,,2]*4
-writePNG(heatobjectsunique/max(heatobjectsunique),
-         paste0(object,"_gray.png"))
 
 
 # Stability condition (if UNSTABLE reduce dt and/or increase dx)
@@ -113,8 +111,11 @@ Temp=heatobjectsunique*0
 for (i in 1:NMAT) {
     Temp[lst[[i]]]=Temp[lst[[i]]]+1
 }
-if (min(Temp) != 1) print(paste0("ERROR: wrong colours in 'heatobjects.png', ",
-    "some part of the scene has an unknown colour"))
+if (min(Temp) != 1) {
+    print(paste0("ERROR: wrong colours in 'heatobjects.png', ",
+        "some part of the scene has an unknown colour"))
+    writePNG(Temp, paste0(object,"heatobjects_ERROR.png"))
+} else print("OK: all parts in the scene have a defined colour")
 
 k=Temp
 alpha=Temp
@@ -135,8 +136,8 @@ SKIP=round(N/NSNAPSHOTS)
 T_Evol=array(0, c(NMAT, NSNAPSHOTS+1))
 N_OUT=0
 for (j in 0:N) {
-    MINT=min(Temp)
-    MAXT=max(Temp)
+    #MINT=min(Temp)
+    #MAXT=max(Temp)
     
     # Snapshot T distribution
     if (j %% SKIP==0) {
@@ -184,8 +185,7 @@ for (j in 0:N) {
             Temp[lst[[i]]] = mean(Temp[lst[[i]]])  # instantaneous convection
             
         } else if (heatobjparams$type[i]=='boundary') {
-            Temp[lst[[i]]] = Temp[lst[[i]]] +
-                Temp[lst[[i]]] = heatobjparams$Temp[i]  # constant T
+            Temp[lst[[i]]] = heatobjparams$Temp[i]  # constant T
 
         } else if (heatobjparams$type[i]=='insulate') {  # copy T
             Temp[lst[[i]]] = heatobjparams$Temp[i]  # reset T
@@ -329,7 +329,7 @@ for (j in 0:N) {
 
 # Plot mean(T) evolution for every object
 for (i in 1:NMAT) {
-    png(paste0("temperature",heatobjparams$desc[i],".png"),width=512, height=400)
+    png(paste0("tprofile_",heatobjparams$desc[i],".png"),width=512, height=400)
     plot(seq(0,dt*N/60,length.out=ncol(T_Evol)), T_Evol[i,],
          type='l', col='red',
          xlab='Time (min)', ylab='T (ºC/K)', main=heatobjparams$desc[i],
@@ -339,7 +339,8 @@ for (i in 1:NMAT) {
 
 
 # HEAT FLUX
-Temp[-lst[[MAINMAT]]]=NaN
+MAINMAT=2
+Temp[-lst[[MAINMAT]]]=NaN  # Evaluate q only on main material
 
 # Calculate heat flux q=-k*grad(T): (NROW-2)x(NCOL-2) matrix
 qx=-k[2:(NROW-1),2:(NCOL-1)] *
@@ -348,15 +349,13 @@ qy=-k[2:(NROW-1),2:(NCOL-1)] *
     (Temp[1:(NROW-2),2:(NCOL-1)] - Temp[3:NROW,2:(NCOL-1)])/(2*dx)
 
 
-# Normalize
+# q modue
 qmod=(qx^2+qy^2)^0.5
 
 # Plot qmod
-z=qmod^0.2
 z=qmod
 color=magma(256)
 persp3d(seq(0,1,length.out=nrow(qmod)), seq(0,1,length.out=ncol(qmod)), z,
         col=color[cut(z, 256)], axes=TRUE, box=TRUE,
         aspect=c(1,1*NCOL/NROW,0.5*NCOL/NROW))
 
-writePNG(((qmod-min(qmod))/(max(qmod)-min(qmod)))^(1/gamma), "qmod.png")
