@@ -10,7 +10,7 @@ library(viridis)
 OBJPARAMS="heatobjects.csv"  # objects thermal definition
 OBJCOLOURS="heatobjects.png"  # simulation geometry definition
 SIMPARAMS="heatparams.csv"  # simulation parameters
-object="bloque"  # simulation name
+object="flux"  # simulation name
 
 
 # Read simulation parameters
@@ -50,7 +50,7 @@ if (NMAT != nrow(heatobjparams)) {
     print(paste0("ERROR: ", nrow(heatobjparams),
                  " materials ('", OBJPARAMS, "') and ", NMAT,
                  " colours ('", OBJCOLOURS, "') mismatch"))
-} else print(paste0(NMAT, " materials defined"))
+} else print(paste0("OK: ", NMAT, " materials defined"))
 
 
 colours=heatobjectsunique[1,2:(NMAT+1)]  # just colours (in first row)
@@ -91,7 +91,6 @@ for (i in 1:NMAT) {
                      heatobjparams$desc[i],"') doesn't appear in the scene"))
     }
 }
-plot(as.raster(heatobjectsunique/NMAT), interpolate=F)
 
 
 # Plot scene contour
@@ -136,8 +135,8 @@ SKIP=round(N/NSNAPSHOTS)
 T_Evol=array(0, c(NMAT, NSNAPSHOTS+1))
 N_OUT=0
 for (j in 0:N) {
-    #MINT=min(Temp)
-    #MAXT=max(Temp)
+    MINT=min(Temp)
+    MAXT=max(Temp)
     
     # Snapshot T distribution
     if (j %% SKIP==0) {
@@ -197,52 +196,12 @@ for (j in 0:N) {
                     Temp[MAXROW[i]+1, MINCOL[i]:MAXCOL[i]]
             
             # Copy T along left and right
+            # (left/right prevails over bottom/top)
             if (MINCOL[i]>1) Temp[MINROW[i]:MAXROW[i], MINCOL[i]] =
                     Temp[MINROW[i]:MAXROW[i], MINCOL[i]-1]
             if (MAXCOL[i]<NCOL) Temp[MINROW[i]:MAXROW[i], MAXCOL[i]] =
                     Temp[MINROW[i]:MAXROW[i], MAXCOL[i]+1]
-            
-            # Refine T on 4 corners:
-            # Bottom-Left
-            if (MINROW[i]>1 & MINCOL[i]>1) {
-                Temp[MINROW[i], MINCOL[i]] =
-                  (Temp[MINROW[i]-1, MINCOL[i]]+Temp[MINROW[i], MINCOL[i]-1])/2
-            } else if (MINROW[i]>1) {  # MINCOL[i]=1
-                Temp[MINROW[i], MINCOL[i]] = Temp[MINROW[i]-1, MINCOL[i]]              
-            } else if (MINCOL[i]>1) {  # MINROW[i]=1
-                Temp[MINROW[i], MINCOL[i]] = Temp[MINROW[i], MINCOL[i]-1]                 
-            }
-            
-            # Top-Left
-            if (MAXROW[i]<NROW & MINCOL[i]>1) {
-                Temp[MAXROW[i], MINCOL[i]] =
-                  (Temp[MAXROW[i]+1, MINCOL[i]]+Temp[MAXROW[i], MINCOL[i]-1])/2
-            } else if (MAXROW[i]<NROW) {  # MINCOL[i]=1
-                Temp[MAXROW[i], MINCOL[i]] = Temp[MAXROW[i]+1, MINCOL[i]]        
-            } else if (MINCOL[i]>1) {  # MAXROW[i]=NROW
-                Temp[MAXROW[i], MINCOL[i]] = Temp[MAXROW[i], MINCOL[i]-1]               
-            }
-            
-            # Bottom-Right
-            if (MINROW[i]>1 & MAXCOL[i]<NCOL) {
-                Temp[MINROW[i], MAXCOL[i]] =
-                  (Temp[MINROW[i]-1, MAXCOL[i]]+Temp[MINROW[i], MAXCOL[i]+1])/2
-            } else if (MINROW[i]>1) {  # MAXCOL[i]=NCOL
-                Temp[MINROW[i], MAXCOL[i]] = Temp[MINROW[i]-1, MAXCOL[i]]              
-            } else if (MAXCOL[i]<NCOL) {  # MINROW[i]=1
-                Temp[MINROW[i], MAXCOL[i]] = Temp[MINROW[i], MAXCOL[i]+1]                 
-            }
 
-            # Top-Right
-            if (MAXROW[i]<NROW & MAXCOL[i]<NCOL) {
-                Temp[MAXROW[i], MAXCOL[i]] =
-                  (Temp[MAXROW[i]+1, MAXCOL[i]]+Temp[MAXROW[i], MAXCOL[i]+1])/2
-            } else if (MAXROW[i]<NROW) {  # MAXCOL[i]=NCOL
-                Temp[MAXROW[i], MAXCOL[i]] = Temp[MAXROW[i]+1, MAXCOL[i]]              
-            } else if (MAXCOL[i]<NCOL) {  # MAXROW[i]=NROW
-                Temp[MAXROW[i], MAXCOL[i]] = Temp[MAXROW[i], MAXCOL[i]+1]                 
-            }
-            
         } else if (heatobjparams$type[i]=='isoflux') {  # transfer heat flux
             Temp[lst[[i]]] = heatobjparams$Temp[i]  # reset T
             
@@ -255,73 +214,13 @@ for (j in 0:N) {
                       Temp[MAXROW[i]+2, MINCOL[i]:MAXCOL[i]]
             
             # Transfer heat flux along left and right
+            # (left/right prevails over bottom/top)
             if (MINCOL[i]>2) Temp[MINROW[i]:MAXROW[i], MINCOL[i]] =
                     2*Temp[MINROW[i]:MAXROW[i], MINCOL[i]-1] -
                       Temp[MINROW[i]:MAXROW[i], MINCOL[i]-2]
             if (MAXCOL[i]<NCOL-1) Temp[MINROW[i]:MAXROW[i], MAXCOL[i]] =
                     2*Temp[MINROW[i]:MAXROW[i], MAXCOL[i]+1] -
                       Temp[MINROW[i]:MAXROW[i], MAXCOL[i]+2]
-            
-            # Refine heat flux on 4 corners:
-            # Bottom-Left
-            if (MINROW[i]>2 & MINCOL[i]>2) {
-                Temp[MINROW[i], MINCOL[i]] =
-                  (Temp[MINROW[i]-1, MINCOL[i]]+Temp[MINROW[i], MINCOL[i]-1]) -
-                  (Temp[MINROW[i]-2, MINCOL[i]]+Temp[MINROW[i], MINCOL[i]-2])/2  
-            } else if (MINROW[i]>2) {  # MINCOL[i]=1,2
-                Temp[MINROW[i], MINCOL[i]] =
-                    2*Temp[MINROW[i]-1, MINCOL[i]] -
-                      Temp[MINROW[i]-2, MINCOL[i]]              
-            } else if (MINCOL[i]>2) {  # MINROW[i]=1,2
-                Temp[MINROW[i], MINCOL[i]] =
-                    2*Temp[MINROW[i], MINCOL[i]-1] -
-                      Temp[MINROW[i], MINCOL[i]-2]             
-            }
-            
-            # Top-Left
-            if (MAXROW[i]<NROW-1 & MINCOL[i]>2) {
-                Temp[MAXROW[i], MINCOL[i]] =
-                  (Temp[MAXROW[i]+1, MINCOL[i]]+Temp[MAXROW[i], MINCOL[i]-1]) -
-                  (Temp[MAXROW[i]+2, MINCOL[i]]+Temp[MAXROW[i], MINCOL[i]-2])/2 
-            } else if (MAXROW[i]<NROW-1) {  # MINCOL[i]=1,2
-                Temp[MAXROW[i], MINCOL[i]] =
-                    2*Temp[MAXROW[i]+1, MINCOL[i]] -
-                      Temp[MAXROW[i]+2, MINCOL[i]]
-            } else if (MINCOL[i]>2) {  # MAXROW[i]=NROW
-                Temp[MAXROW[i], MINCOL[i]] =
-                    2*Temp[MAXROW[i], MINCOL[i]-1] -
-                      Temp[MAXROW[i], MINCOL[i]-2]
-            }
-            
-            # Bottom-Right
-            if (MINROW[i]>2 & MAXCOL[i]<NCOL-1) {
-                Temp[MINROW[i], MAXCOL[i]] =
-                  (Temp[MINROW[i]-1, MAXCOL[i]]+Temp[MINROW[i], MAXCOL[i]+1]) -
-                  (Temp[MINROW[i]-2, MAXCOL[i]]+Temp[MINROW[i], MAXCOL[i]+2])/2
-            } else if (MINROW[i]>2) {  # MAXCOL[i]=NCOL,NCOL-1
-                Temp[MINROW[i], MAXCOL[i]] =
-                    2*Temp[MINROW[i]-1, MAXCOL[i]] -
-                      Temp[MINROW[i]-2, MAXCOL[i]]
-            } else if (MAXCOL[i]<NCOL-1) {  # MINROW[i]=1,2
-                Temp[MINROW[i], MAXCOL[i]] =
-                    2*Temp[MINROW[i], MAXCOL[i]+1] -
-                      Temp[MINROW[i], MAXCOL[i]+2]
-            }
-            
-            # Top-Right
-            if (MAXROW[i]<NROW-1 & MAXCOL[i]<NCOL-1) {
-                Temp[MAXROW[i], MAXCOL[i]] =
-                  (Temp[MAXROW[i]+1, MAXCOL[i]]+Temp[MAXROW[i], MAXCOL[i]+1]) -
-                  (Temp[MAXROW[i]+2, MAXCOL[i]]+Temp[MAXROW[i], MAXCOL[i]+2])/2
-            } else if (MAXROW[i]<NROW-1) {  # MAXCOL[i]=NCOL,NCOL-1
-                Temp[MAXROW[i], MAXCOL[i]] =
-                    2*Temp[MAXROW[i]+1, MAXCOL[i]] -
-                      Temp[MAXROW[i]+2, MAXCOL[i]]
-            } else if (MAXCOL[i]<NCOL-1) {  # MAXROW[i]=NROW,NROW-1
-                Temp[MAXROW[i], MAXCOL[i]] =
-                    2*Temp[MAXROW[i], MAXCOL[i]+1] -
-                      Temp[MAXROW[i], MAXCOL[i]+2]
-            }        
         }
     }
 }
@@ -339,8 +238,8 @@ for (i in 1:NMAT) {
 
 
 # HEAT FLUX
-MAINMAT=2
-Temp[-lst[[MAINMAT]]]=NaN  # Evaluate q only on main material
+MAINMAT=1
+Temp[-lst[[MAINMAT]]]=NaN  # Evaluate q only on MAINMAT
 
 # Calculate heat flux q=-k*grad(T): (NROW-2)x(NCOL-2) matrix
 qx=-k[2:(NROW-1),2:(NCOL-1)] *
@@ -349,10 +248,9 @@ qy=-k[2:(NROW-1),2:(NCOL-1)] *
     (Temp[1:(NROW-2),2:(NCOL-1)] - Temp[3:NROW,2:(NCOL-1)])/(2*dx)
 
 
-# q modue
+# q modulus
 qmod=(qx^2+qy^2)^0.5
 
-# Plot qmod
 z=qmod
 color=magma(256)
 persp3d(seq(0,1,length.out=nrow(qmod)), seq(0,1,length.out=ncol(qmod)), z,
