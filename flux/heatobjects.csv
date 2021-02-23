@@ -1,0 +1,10 @@
+Temp,alpha,k,q,type,desc
+0,1.25e-5,50,0,solid,conductor
+0,1.25e-5,50,3e5,source,fuente1
+0,1.25e-5,50,-3e5,source,fuente2
+0,2.02e-5,0.02,0,insulate,aislante1
+0,2.02e-5,0.02,0,insulate,aislante2
+0,2.02e-5,0.02,0,insulate,aislU
+0,2.02e-5,0.02,0,insulate,aislR
+0,2.02e-5,0.02,0,insulate,aislB
+0,2.02e-5,0.02,0,insulate,aislL
