@@ -237,6 +237,7 @@ for (i in 1:NMAT) {
 }
 
 
+
 # HEAT FLUX
 MAINMAT=1
 Temp[-lst[[MAINMAT]]]=NaN  # Evaluate q only on MAINMAT
@@ -248,12 +249,62 @@ qy=-k[2:(NROW-1),2:(NCOL-1)] *
     (Temp[1:(NROW-2),2:(NCOL-1)] - Temp[3:NROW,2:(NCOL-1)])/(2*dx)
 
 
-# q modulus
+# 3D plot of q modulus
 qmod=(qx^2+qy^2)^0.5
-
 z=qmod
 color=magma(256)
-persp3d(seq(0,1,length.out=nrow(qmod)), seq(0,1,length.out=ncol(qmod)), z,
+persp3d(seq(0,1,length.out=nrow(z)), seq(0,1,length.out=ncol(z)), z,
         col=color[cut(z, 256)], axes=TRUE, box=TRUE,
         aspect=c(1,1*NCOL/NROW,0.5*NCOL/NROW))
 
+
+
+# Plot T countour map
+png("flux_simulation.png", width=640, height = 598)
+tempe=t(Temp)[,nrow(Temp):1]
+x=10*(1:nrow(tempe))
+y=10*(1:ncol(tempe))
+image(x, y, tempe, col = magma(256), axes = FALSE, asp=1)
+contour(x, y, tempe, levels = seq(-70, 70, by = 5), labcex = 1.2,
+        add = TRUE, col = "brown")
+dev.off()
+
+
+
+# FOLLOWING CODE NEEDS REVISION
+
+# Plot T vector field
+
+library(rasterVis)
+library(raster)
+
+# Plot 2D flux vectors
+# flux.png is the last simulation iteration
+img=readPNG("flux.png")
+img[img==1]=NaN
+image(img, col = magma(256), asp=1)
+proj <- CRS('+proj=longlat +datum=WGS84')
+df <- expand.grid(x = seq(-1, 1, length.out=nrow(img)),
+                  y = seq(-222/200, -222/200, length.out=ncol(img)))
+dim(img)=c(length(img), 1)
+df$z <- as.data.frame(img)
+r <- rasterFromXYZ(df, crs=proj)  # ERROR ???
+pdf("fluxvector.pdf", lwd.arrows=3)
+vectorplot(r, par.settings=RdBuTheme())
+dev.off()
+
+pdf("streamplot.pdf")
+streamplot(r, maxpixels=300, aspX=0.02, aspY=0.02)
+dev.off()
+
+
+# THIS CODE WORKS
+proj <- CRS('+proj=longlat +datum=WGS84')
+df <- expand.grid(x = seq(-2, 2, .01), y = seq(-2, 2, .01))
+df$z <- with(df, (3*x^2 + y)*exp(-x^2-y^2))
+r <- rasterFromXYZ(df, crs=proj)
+vectorplot(r, par.settings=RdBuTheme())
+# png("stream.png")
+pdf("stream.pdf")
+streamplot(r)
+dev.off()
